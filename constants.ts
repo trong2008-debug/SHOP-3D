@@ -4,7 +4,7 @@ import { Product, SizeOption, MaterialOption } from './types';
 export const PRODUCTS: Product[] = [
   { id: 1, name: 'Katana High-Poly', image: 'https://picsum.photos/seed/katana/800/600', basePrice: 70000, badge: 'HOT' },
   { id: 2, name: 'Cyberpunk Blaster', image: 'https://picsum.photos/seed/gun/800/600', basePrice: 90000, badge: 'NEW' },
-  { id: 3, name: 'Furina Figure from GI', image: 'https://picsum.photos/seed/figure/800/600', basePrice: 120000, badge: 'PREMIUM' },
+  { id: 3, name: 'Furina Figure', image: 'https://picsum.photos/seed/figure/800/600', basePrice: 120000, badge: 'PREMIUM' },
   { id: 4, name: 'Formula 1 Chassis', image: 'https://picsum.photos/seed/f1/800/600', basePrice: 150000, badge: 'LIMIT' },
   { id: 5, name: 'BMW M4 Competition', image: 'https://picsum.photos/seed/bmw/800/600', basePrice: 70000, badge: 'DETAILED' },
   { id: 6, name: 'Raichu Evolution', image: 'https://picsum.photos/seed/raichu/800/600', basePrice: 70000, badge: 'FAVORITE' },
