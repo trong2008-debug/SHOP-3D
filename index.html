@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHOP IN 3D | Standalone Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              theme: {
+                bg: '#F4F9F4',
+                card: '#FFFFFF',
+                accent: '#4CAF50',
+                'accent-hover': '#43A047',
+                'accent-light': '#E8F5E9',
+                text: '#2F3A2F',
+                border: '#DCE8DC',
+              },
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --bg-color: #F4F9F4;
+        --card-bg: #FFFFFF;
+        --accent-color: #4CAF50;
+        --accent-hover: #43A047;
+        --accent-light: #E8F5E9;
+        --text-color: #2F3A2F;
+        --border-color: #DCE8DC;
+        --card-shadow: 0 4px 12px rgba(47, 58, 47, 0.03);
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(16px);
+      }
+
+      .card-shadow {
+        background-color: var(--card-bg);
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .card-shadow:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px -8px rgba(47, 58, 47, 0.1);
+        border-color: var(--accent-color);
+      }
+
+      .springy {
+        transition: all 0.15s cubic-bezier(0.2, 1, 0.3, 1);
+      }
+      .springy:active {
+        transform: scale(0.96);
+      }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: var(--bg-color); }
+      ::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
+
+      @keyframes check-pop {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .check-pop { animation: check-pop 0.3s ease-out forwards; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+
+    <script type="module">
+      import React, { useState, useEffect, useMemo, useRef } from 'https://esm.sh/react@19.0.0';
+      import ReactDOM from 'https://esm.sh/react-dom@19.0.0/client';
+      import { 
+        ShoppingBag, MessageSquare, Mail, Facebook, Send, Trash2, Gift, 
+        Sparkles, Heart, X, ChevronRight, Menu, Zap, ShieldCheck, Truck, Box, 
+        ShoppingCart, Check, ArrowRight, Trophy, PartyPopper 
+      } from 'https://esm.sh/lucide-react@0.463.0';
+
+      // --- Constants ---
+      const PRODUCTS = [
+        { id: 1, name: 'Katana High-Poly', image: 'pic/kiem.jpg', basePrice: 70000, badge: 'HOT' },
+        { id: 2, name: 'Cyberpunk Blaster', image: 'pic/gun.jpg', basePrice: 90000, badge: 'NEW' },
+        { id: 3, name: 'Ethereal Figure', image: 'pic/figure.jpg', basePrice: 120000, badge: 'PREMIUM' },
+        { id: 4, name: 'Formula 1 Chassis', image: 'pic/xe.jpg', basePrice: 150000, badge: 'LIMIT' },
+        { id: 5, name: 'BMW M4 Competition', image: 'pic/bmwm4.jpg', basePrice: 70000, badge: 'DETAILED' },
+        { id: 6, name: 'Raichu Evolution', image: 'pic/raichupoke.jpg', basePrice: 70000, badge: 'FAVORITE' },
+      ];
+
+      const SIZES = [
+        { label: '30 cm', multiplier: 1 },
+        { label: '50 cm', multiplier: 1.5 },
+        { label: '80 cm', multiplier: 2 },
+      ];
+
+      const MATERIALS = [
+        { label: 'PLA (Tough)', multiplier: 1 },
+        { label: 'Resin (Hyper-Detail)', multiplier: 1.4 },
+      ];
+
+      const CONTACTS = {
+        zalo: '0396043085',
+        email: 'shopin3d@gmail.com',
+        facebook: 'https://www.facebook.com/profile.php?id=61578654816696'
+      };
+
+      // --- Components ---
+
+      const LuckySpin = ({ onWin, onClose }) => {
+        const [isSpinning, setIsSpinning] = useState(false);
+        const [result, setResult] = useState(null);
+        const slotRef = useRef(null);
+        
+        const rewards = [0, 5, 10, 15, 20];
+        const items = [...rewards, ...rewards, ...rewards, ...rewards];
+
+        const handleSpin = () => {
+          if (isSpinning) return;
+          setIsSpinning(true);
+          setResult(null);
+
+          const winningIdx = Math.floor(Math.random() * rewards.length);
+          const winValue = rewards[winningIdx];
+          const itemHeight = 90;
+          const finalIdx = (items.length - rewards.length) + winningIdx;
+          const offset = finalIdx * itemHeight;
+
+          if (slotRef.current) {
+            slotRef.current.style.transition = 'none';
+            slotRef.current.style.transform = 'translateY(0)';
+            slotRef.current.offsetHeight;
+            slotRef.current.style.transition = 'transform 4.5s cubic-bezier(0.1, 0.9, 0.2, 1)';
+            slotRef.current.style.transform = `translateY(-${offset}px)`;
+          }
+
+          setTimeout(() => {
+            setIsSpinning(false);
+            setResult(winValue);
+            onWin(winValue);
+          }, 4700);
+        };
+
+        return React.createElement('div', { className: "fixed inset-0 z-50 flex items-center justify-center p-6 bg-theme-text/20 backdrop-blur-sm" },
+          React.createElement('div', { className: "relative bg-white w-full max-w-sm p-10 rounded-[3rem] text-center shadow-2xl border border-theme-border" },
+            React.createElement('div', { className: "absolute top-0 left-0 w-full h-1.5 bg-theme-accent" }),
+            React.createElement('button', { onClick: onClose, className: "absolute top-6 right-6 p-2.5 opacity-40 hover:opacity-100 springy" }, React.createElement(X, { size: 22 })),
+            React.createElement('div', { className: "inline-flex items-center justify-center w-20 h-20 bg-theme-accent-light rounded-3xl mb-8 text-theme-accent" }, React.createElement(Trophy, { size: 36 })),
+            React.createElement('h2', { className: "text-3xl font-black mb-3 text-theme-text" }, "Vòng Quay Daylight"),
+            React.createElement('p', { className: "text-theme-text opacity-60 mb-10 text-[13px]" }, "Khám phá mã voucher ưu đãi đến 20% hôm nay."),
+            React.createElement('div', { className: "relative mb-10 overflow-hidden h-[90px] border border-theme-border rounded-[2rem] bg-theme-bg/60 shadow-inner" },
+              React.createElement('div', { ref: slotRef, className: "flex flex-col" }, 
+                items.map((val, i) => React.createElement('div', { key: i, className: `h-[90px] flex items-center justify-center text-4xl font-black ${val > 0 ? 'text-theme-accent' : 'text-theme-text opacity-10'}` }, `${val}%`))
+              )
+            ),
+            React.createElement('button', { 
+              onClick: handleSpin, 
+              disabled: isSpinning || result !== null,
+              className: `w-full py-4.5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all springy shadow-lg ${isSpinning || result !== null ? 'bg-theme-bg text-theme-text opacity-20' : 'bg-theme-accent text-white shadow-theme-accent/20'}`
+            }, isSpinning ? 'ĐANG XOAY...' : result !== null ? 'HOÀN THÀNH' : 'THỬ VẬN MAY'),
+            result !== null && React.createElement('div', { className: "mt-8 p-6 bg-theme-accent-light rounded-[2rem] border border-theme-accent/20" },
+              result > 0 
+                ? React.createElement('p', { className: "text-theme-text font-bold text-[13px]" }, `Chúc mừng! Voucher `, React.createElement('span', { className: "text-lg font-black text-theme-accent" }, `${result}%`), ` đã áp dụng.`)
+                : React.createElement('p', { className: "text-theme-text opacity-40 font-bold text-[13px]" }, "Hẹn bạn lần sau nhé! 🍀")
+            )
+          )
+        );
+      };
+
+      const ProductCard = ({ product, isWishlisted, onAddToCart, onToggleWishlist }) => {
+        const [sizeIdx, setSizeIdx] = useState(0);
+        const [materialIdx, setMaterialIdx] = useState(0);
+        const [quantity, setQuantity] = useState(1);
+        const [isAdding, setIsAdding] = useState(false);
+
+        const currentPrice = useMemo(() => {
+          return Math.round(product.basePrice * SIZES[sizeIdx].multiplier * MATERIALS[materialIdx].multiplier * quantity);
+        }, [product.basePrice, sizeIdx, materialIdx, quantity]);
+
+        const handleAdd = () => {
+          setIsAdding(true);
+          onAddToCart({
+            id: `${product.id}-${Date.now()}`,
+            productId: product.id,
+            name: product.name,
+            size: SIZES[sizeIdx].label,
+            material: MATERIALS[materialIdx].label,
+            quantity,
+            price: currentPrice
+          });
+          setTimeout(() => setIsAdding(false), 1200);
+        };
+
+        return React.createElement('div', { className: "group relative bg-white rounded-3xl overflow-hidden card-shadow flex flex-col h-full" },
+          React.createElement('button', { 
+            onClick: () => onToggleWishlist(product),
+            className: `absolute top-4 right-4 z-10 p-2.5 rounded-full bg-white/95 shadow-sm border border-theme-border springy ${isWishlisted ? 'text-rose-500' : 'text-theme-text opacity-20 hover:opacity-100'}`
+          }, React.createElement(Heart, { size: 18, fill: isWishlisted ? "currentColor" : "none" })),
+          React.createElement('div', { className: "relative aspect-[4/3] bg-theme-bg overflow-hidden" },
+            React.createElement('img', { src: product.image, alt: product.name, className: "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" }),
+            product.badge && React.createElement('div', { className: "absolute top-4 left-4 px-3 py-1 bg-theme-accent text-white text-[9px] font-black rounded-lg uppercase shadow-md shadow-theme-accent/20" }, product.badge)
+          ),
+          React.createElement('div', { className: "p-7 flex-1 flex flex-col" },
+            React.createElement('h3', { className: "text-2xl font-black mb-5 text-theme-text" }, product.name),
+            React.createElement('div', { className: "space-y-5 mb-8" },
+              React.createElement('div', null,
+                React.createElement('label', { className: "block text-[10px] font-bold text-theme-text opacity-40 uppercase mb-2.5" }, "Kích thước"),
+                React.createElement('div', { className: "flex gap-1.5 p-1.5 bg-theme-bg border border-theme-border rounded-2xl" },
+                  SIZES.map((s, idx) => React.createElement('button', {
+                    key: s.label,
+                    onClick: () => setSizeIdx(idx),
+                    className: `flex-1 py-2 text-[11px] font-bold rounded-xl transition-all ${sizeIdx === idx ? 'bg-white text-theme-accent shadow-md' : 'text-theme-text opacity-40 hover:opacity-100'}`
+                  }, s.label))
+                )
+              ),
+              React.createElement('div', null,
+                React.createElement('label', { className: "block text-[10px] font-bold text-theme-text opacity-40 uppercase mb-2.5" }, "Vật liệu"),
+                React.createElement('div', { className: "flex gap-3" },
+                  MATERIALS.map((m, idx) => React.createElement('button', {
+                    key: m.label,
+                    onClick: () => setMaterialIdx(idx),
+                    className: `flex-1 py-3 px-3 text-[11px] font-bold rounded-2xl border-2 transition-all ${materialIdx === idx ? 'bg-theme-accent-light border-theme-accent text-theme-accent' : 'bg-white border-theme-border opacity-40 hover:opacity-100'}`
+                  }, m.label.split(' ')[0]))
+                )
+              )
+            ),
+            React.createElement('div', { className: "mt-auto pt-6 border-t border-theme-border flex flex-col gap-5" },
+              React.createElement('div', { className: "flex items-center justify-between" },
+                React.createElement('div', null,
+                  React.createElement('span', { className: "text-[9px] text-theme-text opacity-40 font-bold uppercase" }, "Giá Hoàn thiện"),
+                  React.createElement('div', { className: "text-3xl font-black text-theme-text" }, `${currentPrice.toLocaleString()}đ`)
+                ),
+                React.createElement('div', { className: "flex items-center bg-theme-bg rounded-xl p-1 border border-theme-border" },
+                  React.createElement('button', { onClick: () => setQuantity(q => Math.max(1, q - 1)), className: "w-8 h-8 bg-white rounded-lg text-theme-text shadow-sm" }, "-"),
+                  React.createElement('span', { className: "w-8 text-center text-sm font-black" }, quantity),
+                  React.createElement('button', { onClick: () => setQuantity(q => q + 1), className: "w-8 h-8 bg-white rounded-lg text-theme-text shadow-sm" }, "+")
+                )
+              ),
+              React.createElement('button', { 
+                onClick: handleAdd, 
+                disabled: isAdding,
+                className: `w-full py-4.5 rounded-2xl flex items-center justify-center gap-3 font-black text-[11px] uppercase tracking-widest transition-all springy shadow-lg ${isAdding ? 'bg-emerald-600 text-white shadow-none' : 'bg-theme-accent text-white shadow-theme-accent/20'}`
+              }, isAdding ? 'ĐÃ THÊM' : React.createElement(React.Fragment, null, React.createElement(ShoppingCart, { size: 18 }), "ĐẶT MUA NGAY"))
+            )
+          )
+        );
+      };
+
+      const App = () => {
+        const [cart, setCart] = useState([]);
+        const [wishlist, setWishlist] = useState([]);
+        const [discount, setDiscount] = useState(0);
+        const [showLucky, setShowLucky] = useState(false);
+        const [hasSpun, setHasSpun] = useState(false);
+        const [isCartOpen, setIsCartOpen] = useState(false);
+        const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+
+        useEffect(() => {
+          const savedCart = localStorage.getItem('cart');
+          if (savedCart) setCart(JSON.parse(savedCart));
+          const savedWishlist = localStorage.getItem('wishlist');
+          if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+          const savedDiscount = localStorage.getItem('discount');
+          if (savedDiscount) { setDiscount(parseInt(savedDiscount)); setHasSpun(true); }
+        }, []);
+
+        useEffect(() => { localStorage.setItem('cart', JSON.stringify(cart)); }, [cart]);
+        useEffect(() => { localStorage.setItem('wishlist', JSON.stringify(wishlist)); }, [wishlist]);
+        useEffect(() => { localStorage.setItem('discount', discount.toString()); }, [discount]);
+
+        const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+        const total = subtotal * (1 - discount / 100);
+
+        const addToCart = (item) => { setCart(prev => [...prev, item]); setIsCartOpen(true); };
+        const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
+        const toggleWishlist = (product) => {
+          setWishlist(prev => prev.find(p => p.id === product.id) ? prev.filter(p => p.id !== product.id) : [...prev, product]);
+        };
+
+        const handleOrder = () => {
+          if (cart.length === 0) return alert('Giỏ hàng trống!');
+          let message = "📦 ĐƠN HÀNG MỚI - SHOP IN 3D\n\n";
+          cart.forEach(item => { message += `• ${item.name} (${item.size}) x${item.quantity}: ${item.price.toLocaleString()}đ\n`; });
+          message += `\n💰 TỔNG: ${total.toLocaleString()}đ`;
+          window.open(`https://zalo.me/${CONTACTS.zalo}?text=${encodeURIComponent(message)}`, '_blank');
+        };
+
+        return React.createElement('div', { className: "min-h-screen flex flex-col bg-theme-bg" },
+          React.createElement('div', { className: "bg-theme-accent text-white py-2.5 text-center text-[10px] font-black tracking-widest uppercase flex items-center justify-center gap-3" }, 
+            React.createElement(Truck, { size: 14 }), "Giao hàng miễn phí toàn quốc cho đơn từ 500k"
+          ),
+          React.createElement('nav', { className: "sticky top-0 z-40 glass border-b border-theme-border px-8 py-3.5 shadow-sm flex items-center justify-between" },
+            React.createElement('div', { className: "flex items-center gap-4 cursor-pointer" },
+              React.createElement('div', { className: "w-10 h-10 rounded-xl bg-theme-accent flex items-center justify-center text-white" }, React.createElement(Box, { size: 20 })),
+              React.createElement('h1', { className: "text-xl font-black text-theme-text" }, "SHOPIN", React.createElement('span', { className: "text-theme-accent italic" }, "3D"))
+            ),
+            React.createElement('div', { className: "flex items-center gap-2" },
+              React.createElement('button', { onClick: () => setIsWishlistOpen(true), className: "relative p-2.5 text-theme-text opacity-50 hover:opacity-100" }, 
+                React.createElement(Heart, { size: 22, className: wishlist.length > 0 ? "fill-rose-500 text-rose-500" : "" }),
+                wishlist.length > 0 && React.createElement('span', { className: "absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center" }, wishlist.length)
+              ),
+              React.createElement('button', { onClick: () => setIsCartOpen(true), className: "relative p-2.5 text-theme-text opacity-50 hover:opacity-100" }, 
+                React.createElement(ShoppingBag, { size: 22 }),
+                cart.length > 0 && React.createElement('span', { className: "absolute top-1 right-1 w-4.5 h-4.5 bg-theme-accent text-white text-[9px] font-bold rounded-full flex items-center justify-center" }, cart.length)
+              )
+            )
+          ),
+          React.createElement('section', { className: "pt-16 pb-20 px-8 bg-white border-b border-theme-border text-center" },
+            React.createElement('div', { className: "max-w-7xl mx-auto" },
+              React.createElement('div', { className: "inline-flex items-center gap-2 px-5 py-2 rounded-full bg-theme-accent-light text-[10px] font-black uppercase text-theme-accent mb-10" }, React.createElement(Zap, { size: 14, className: "fill-theme-accent" }), "In 3D Sinh Động"),
+              React.createElement('h2', { className: "text-5xl md:text-8xl font-black mb-8 text-theme-text tracking-tighter" }, "Biến Ý Tưởng Thành ", React.createElement('br'), React.createElement('span', { className: "text-theme-accent italic" }, "Hiện Thực Rạng Rỡ")),
+              React.createElement('div', { className: "flex justify-center gap-5" },
+                React.createElement('button', { onClick: () => document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' }), className: "px-10 py-4 bg-theme-accent text-white rounded-xl font-bold text-[11px] tracking-widest shadow-lg springy" }, "KHÁM PHÁ NGAY"),
+                !hasSpun && React.createElement('button', { onClick: () => setShowLucky(true), className: "px-10 py-4 bg-white border border-theme-border text-theme-text rounded-xl font-bold text-[11px] flex items-center gap-3 springy" }, React.createElement(Gift, { size: 20, className: "text-theme-accent" }), "ƯU ĐÃI")
+              )
+            )
+          ),
+          React.createElement('main', { id: "catalog", className: "max-w-7xl mx-auto px-8 py-20 w-full" },
+            React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" },
+              PRODUCTS.map(product => React.createElement(ProductCard, { 
+                key: product.id, 
+                product: product, 
+                isWishlisted: wishlist.some(p => p.id === product.id),
+                onAddToCart: addToCart, 
+                onToggleWishlist: toggleWishlist 
+              }))
+            )
+          ),
+          isCartOpen && React.createElement('div', { className: "fixed inset-0 z-50 flex justify-end" },
+            React.createElement('div', { className: "absolute inset-0 bg-theme-text/10 backdrop-blur-sm", onClick: () => setIsCartOpen(false) }),
+            React.createElement('div', { className: "relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col" },
+              React.createElement('div', { className: "p-10 border-b border-theme-border flex items-center justify-between" },
+                React.createElement('h2', { className: "text-3xl font-black text-theme-text" }, "Giỏ Hàng"),
+                React.createElement('button', { onClick: () => setIsCartOpen(false) }, React.createElement(X, { size: 24 }))
+              ),
+              React.createElement('div', { className: "flex-1 overflow-y-auto p-10 space-y-8" },
+                cart.length === 0 ? React.createElement('p', { className: "text-center opacity-40 font-bold" }, "Giỏ hàng trống") : 
+                cart.map(item => React.createElement('div', { key: item.id, className: "bg-theme-bg/20 p-6 rounded-3xl border border-theme-border relative" },
+                  React.createElement('button', { onClick: () => removeFromCart(item.id), className: "absolute top-4 right-4 opacity-30 hover:opacity-100" }, React.createElement(Trash2, { size: 18 })),
+                  React.createElement('h4', { className: "font-black text-lg" }, item.name),
+                  React.createElement('p', { className: "text-xs opacity-50 uppercase font-bold" }, `${item.size} • ${item.material} • x${item.quantity}`),
+                  React.createElement('div', { className: "text-xl font-black mt-2" }, `${item.price.toLocaleString()}đ`)
+                ))
+              ),
+              React.createElement('div', { className: "p-10 border-t border-theme-border" },
+                React.createElement('div', { className: "flex justify-between text-4xl font-black mb-10" }, React.createElement('span', null, "TỔNG"), React.createElement('span', null, `${total.toLocaleString()}đ`)),
+                React.createElement('button', { onClick: handleOrder, className: "w-full py-6 bg-theme-accent text-white font-black rounded-2xl shadow-lg uppercase" }, "Đặt hàng Zalo")
+              )
+            )
+          ),
+          showLucky && React.createElement(LuckySpin, { onWin: (val) => { setDiscount(val); setHasSpun(true); }, onClose: () => setShowLucky(false) })
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
